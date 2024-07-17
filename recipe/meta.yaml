@@ -1,50 +1,50 @@
 {% set version = "0.1.5" %}
-
 {% set posix = 'm2-' if win else '' %}
-{% set native = 'm2w64-' if win else '' %}
 
 package:
   name: r-ddrtree
   version: {{ version|replace("-", "_") }}
 
 source:
-  fn: DDRTree_{{ version }}.tar.gz
   url:
-    - https://cran.r-project.org/src/contrib/DDRTree_{{ version }}.tar.gz
-    - https://cran.r-project.org/src/contrib/Archive/DDRTree/DDRTree_{{ version }}.tar.gz
+    - {{ cran_mirror }}/src/contrib/DDRTree_{{ version }}.tar.gz
+    - {{ cran_mirror }}/src/contrib/Archive/DDRTree/DDRTree_{{ version }}.tar.gz
   sha256: d351ec029461b43c0dcc7c30d9f378753b31ba16c6dbf667869df279b874459b
 
 build:
-  merge_build_host: true  # [win]
-  number: 1006
-  skip: true  # [win32]
+  number: 1007
   rpaths:
     - lib/R/lib/
     - lib/
 
 requirements:
   build:
-    - posix                # [win]
-    - {{ compiler('c') }}        # [unix]
-    - {{ compiler('m2w64_c') }}  # [win]
-    - {{ compiler('cxx') }}        # [unix]
+    - cross-r-base {{ r_base }}    # [build_platform != target_platform]
+    - {{ compiler('c') }}          # [not win]
+    - {{ stdlib('c') }}            # [not win]
+    - {{ compiler('m2w64_c') }}    # [win]
+    - {{ stdlib('m2w64_c') }}      # [win]
+    - {{ compiler('cxx') }}        # [not win]
     - {{ compiler('m2w64_cxx') }}  # [win]
+    - {{ posix }}filesystem        # [win]
+    - {{ posix }}make
+    - {{ posix }}sed               # [win]
+    - {{ posix }}coreutils         # [win]
+    - {{ posix }}zip               # [win]
   host:
     - r-base
     - r-bh
+    - r-irlba
     - r-rcpp
     - r-rcppeigen
-    - r-irlba
   run:
     - r-base
-    - r-bh
-    - r-rcpp
-    - r-rcppeigen
     - r-irlba
+    - r-rcpp
 
 test:
   commands:
-    - $R -e "library('DDRTree')"  # [not win]
+    - $R -e "library('DDRTree')"           # [not win]
     - "\"%R%\" -e \"library('DDRTree')\""  # [win]
 
 about:
@@ -58,9 +58,9 @@ about:
     structure of the single cell genomics data. In general, it could be used to reconstruct
     the temporal progression as well as bifurcation structure of any datatype.
   license_family: OTHER
-
   license_file:
     - {{ environ["PREFIX"] }}/lib/R/share/licenses/Artistic-2.0
+
 extra:
   recipe-maintainers:
     - conda-forge/r
